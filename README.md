@@ -92,6 +92,8 @@ options:
                         File to save the credentials
   -bd BULK_DOWNLOAD, --bulk-download BULK_DOWNLOAD
                         Bulk download from file with urls
+  -cm COMMENT, --comment COMMENT
+                        Comment tag text
 ```
 
 ## Changelog

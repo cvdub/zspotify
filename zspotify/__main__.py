@@ -254,6 +254,11 @@ class ZSpotify:
             default=Path.home() / ".zspotify" / "credentials.json")
         parser.add_argument("-bd", "--bulk-download",
                             help="Bulk download from file with urls")
+        parser.add_argument(
+            "-cm",
+            "--comment",
+            help="Comment tag text",
+            default=None)
 
         return parser.parse_args()
 
@@ -325,7 +330,8 @@ class ZSpotify:
                        track_number=None,
                        track_id_str=None,
                        album_artist=None,
-                       image_url=None):
+                       image_url=None,
+                       comment=None):
         """sets music_tag metadata using mutagen if possible"""
         artist = artists
 
@@ -364,12 +370,13 @@ class ZSpotify:
                 tags["TRCK"] = id3.TRCK(
                     encoding=3, text=str(track_number)
                 )
-            if track_id_str is not None:
+            if comment:
                 # COMM User comment
                 tags["COMM"] = id3.COMM(
                     encoding=3,
                     lang="eng",
-                    text="https://open.spotify.com/track/" + track_id_str)
+                    text=comment
+                )
             if album_artist is not None:
                 # TPE2 Band/orchestra/accompaniment
                 tags["TPE2"] = id3.TPE2(
@@ -403,8 +410,9 @@ class ZSpotify:
                 tags["discnumber"] = str(disc_number)
             if track_number is not None:
                 tags["tracknumber"] = track_number
-            if track_id_str is not None:
-                tags["comment"] = "https://open.spotify.com/track/" + track_id_str
+            if comment is not None:
+                # TODO
+                tags["comment"] = comment
             if image_url is not None:
                 albumart = requests.get(image_url).content if image_url else None
                 if albumart:
@@ -495,6 +503,13 @@ class ZSpotify:
 
         return fullpath, filename
 
+    def generate_comment(self, track_id_str=None):
+        if self.args.comment:
+            return self.args.comment
+        elif track_id_str:
+            return "https://open.spotify.com/track/" + track_id_str
+        return None
+
     def download_track(self, track_id, path=None, caller=None):
         if self.args.skip_downloaded and self.archive.exists(track_id):
             print(f"Skipping {track_id} - Already Downloaded")
@@ -515,6 +530,8 @@ class ZSpotify:
         audio_number = track['audio_number']
         artist_name = track['artist_name']
         album_name = track['album_name']
+        track_id_str = track['scraped_song_id']
+        comment = self.generate_comment(track_id_str)
 
         # Sanitize and set full path once
         fullpath, filename = self.generate_filename(caller, audio_name, audio_number, audio_format, artist_name,
@@ -558,8 +575,9 @@ class ZSpotify:
                             release_year=track['release_year'],
                             disc_number=track['disc_number'],
                             track_number=audio_number,
-                            track_id_str=track['scraped_song_id'],
-                            image_url=track['image_url'])
+                            track_id_str=track_id_str,
+                            image_url=track['image_url'],
+                            comment=comment)
         print(f"Finished downloading {filename}")
 
     def download_playlist(self, playlist_id):
@@ -779,7 +797,8 @@ class ZSpotify:
                             name=episode['audio_name'],
                             release_year=episode['release_year'],
                             track_id_str=episode_id,
-                            image_url=episode['image_url'])
+                            image_url=episode['image_url'],
+                            comment=self.generate_comment(episode_id))
         print(f"Finished downloading {episode['audio_name']} episode")
 
     def download_all_show_episodes(self, show_id):
