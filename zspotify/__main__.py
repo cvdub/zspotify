@@ -32,7 +32,7 @@ class ZSpotify:
         self.respot = Respot(
             config_dir=self.args.config_dir,
             force_premium=self.args.force_premium,
-            credentials=self.args.credentials_file,
+            credentials=Path(self.args.credentials_file),
             audio_format=self.args.audio_format,
             antiban_wait_time=self.args.antiban_time,
         )
