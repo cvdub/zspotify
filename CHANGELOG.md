@@ -1,5 +1,8 @@
 # Changelog
 
+**v2.1.1 (8 Jan 2024)**
+- Credentials file is a Path object
+
 **v2.1.0 (29 Sep 2023)**
 - Use never python Docker image
 - Rewrite classes, separate functionality
